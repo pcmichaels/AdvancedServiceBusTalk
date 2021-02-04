@@ -3,7 +3,15 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 16
 VisualStudioVersion = 16.0.30803.129
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AdvServiceBus.DeadLetter", "AdvServiceBus.DeadLetter\AdvServiceBus.DeadLetter.csproj", "{02E3FC63-BDE4-4553-82B3-C18351119406}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AdvServiceBus.DeadLetter", "AdvServiceBus.DeadLetter\AdvServiceBus.DeadLetter.csproj", "{02E3FC63-BDE4-4553-82B3-C18351119406}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AdvServiceBus.AutoForwardingDemo", "AdvServiceBus.AutoForwardingDemo\AdvServiceBus.AutoForwardingDemo.csproj", "{748958A7-03B0-4C3F-A9EF-8988734D4CB2}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AdvServiceBus.DeferMessageDemo", "AdvServiceBus.DeferMessageDemo\AdvServiceBus.DeferMessageDemo.csproj", "{B34661FB-2F24-4EAC-83D0-467028D847A4}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AdvServiceBus.QueueScheduledDeliveryDemo", "AdvServiceBus.QueueDeferralDemo\AdvServiceBus.QueueScheduledDeliveryDemo.csproj", "{2B43553B-D9A6-485D-9B47-A96D0A894F1E}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AdvServiceBus.QueueSessionDemo", "AdvServiceBus.QueueSessionDemo\AdvServiceBus.QueueSessionDemo.csproj", "{7293ED26-3AEA-4F2B-87B4-7B9D0D767E1D}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -15,6 +23,22 @@ Global
 		{02E3FC63-BDE4-4553-82B3-C18351119406}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{02E3FC63-BDE4-4553-82B3-C18351119406}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{02E3FC63-BDE4-4553-82B3-C18351119406}.Release|Any CPU.Build.0 = Release|Any CPU
+		{748958A7-03B0-4C3F-A9EF-8988734D4CB2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{748958A7-03B0-4C3F-A9EF-8988734D4CB2}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{748958A7-03B0-4C3F-A9EF-8988734D4CB2}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{748958A7-03B0-4C3F-A9EF-8988734D4CB2}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B34661FB-2F24-4EAC-83D0-467028D847A4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B34661FB-2F24-4EAC-83D0-467028D847A4}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B34661FB-2F24-4EAC-83D0-467028D847A4}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B34661FB-2F24-4EAC-83D0-467028D847A4}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2B43553B-D9A6-485D-9B47-A96D0A894F1E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2B43553B-D9A6-485D-9B47-A96D0A894F1E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2B43553B-D9A6-485D-9B47-A96D0A894F1E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2B43553B-D9A6-485D-9B47-A96D0A894F1E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7293ED26-3AEA-4F2B-87B4-7B9D0D767E1D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7293ED26-3AEA-4F2B-87B4-7B9D0D767E1D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7293ED26-3AEA-4F2B-87B4-7B9D0D767E1D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7293ED26-3AEA-4F2B-87B4-7B9D0D767E1D}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
