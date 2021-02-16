@@ -13,6 +13,10 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AdvServiceBus.QueueSchedule
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AdvServiceBus.QueueSessionDemo", "AdvServiceBus.QueueSessionDemo\AdvServiceBus.QueueSessionDemo.csproj", "{7293ED26-3AEA-4F2B-87B4-7B9D0D767E1D}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AdvServiceBus.ServiceBusManagement", "AdvServiceBus.ServiceBusManagement\AdvServiceBus.ServiceBusManagement.csproj", "{EE137E8A-CF3F-48CE-BC12-EF2289C01F53}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AdvServiceBus.Performance", "AdvServiceBus.Performance\AdvServiceBus.Performance.csproj", "{36784032-05FD-4BB2-A63F-C51A337CAC70}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -39,6 +43,14 @@ Global
 		{7293ED26-3AEA-4F2B-87B4-7B9D0D767E1D}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{7293ED26-3AEA-4F2B-87B4-7B9D0D767E1D}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{7293ED26-3AEA-4F2B-87B4-7B9D0D767E1D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{EE137E8A-CF3F-48CE-BC12-EF2289C01F53}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{EE137E8A-CF3F-48CE-BC12-EF2289C01F53}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{EE137E8A-CF3F-48CE-BC12-EF2289C01F53}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{EE137E8A-CF3F-48CE-BC12-EF2289C01F53}.Release|Any CPU.Build.0 = Release|Any CPU
+		{36784032-05FD-4BB2-A63F-C51A337CAC70}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{36784032-05FD-4BB2-A63F-C51A337CAC70}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{36784032-05FD-4BB2-A63F-C51A337CAC70}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{36784032-05FD-4BB2-A63F-C51A337CAC70}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
