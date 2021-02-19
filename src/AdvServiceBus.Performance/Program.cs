@@ -4,6 +4,7 @@ using Microsoft.Extensions.Configuration;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -29,7 +30,8 @@ namespace AdvServiceBus.Performance
                 Console.WriteLine("2: Send 1000 Messages Batched");
                 Console.WriteLine("3: Receive 1000 Messages in Queue");
                 Console.WriteLine("4: Batch Receive 1000 Messages in Queue");
-                //Console.WriteLine("5: Prefetch??");               
+                Console.WriteLine("5: Prefetch Receive 1000 Messages in Queue");
+                Console.WriteLine("6: Prefetch Batch Receive 1000 Messages in Queue");
                 Console.WriteLine("0: Exit");
 
                 var key = Console.ReadKey();
@@ -53,6 +55,14 @@ namespace AdvServiceBus.Performance
 
                     case ConsoleKey.D4:
                         await ReceiveMessagesBatch(connectionString, 1000);
+                        break;
+
+                    case ConsoleKey.D5:
+                        await ReceiveMessagesPrefetch(connectionString, 1000, 150);
+                        break;
+
+                    case ConsoleKey.D6:
+                        await ReceiveMessagesBatchPrefetch(connectionString, 1000, 1000);
                         break;
 
                 }
@@ -112,6 +122,8 @@ namespace AdvServiceBus.Performance
                 var message = await messageReceiver.ReceiveAsync();
                 string messageBody = Encoding.UTF8.GetString(message.Body);
                 Console.WriteLine($"Message received: {messageBody}");
+
+                await messageReceiver.CompleteAsync(message.SystemProperties.LockToken);
             }
 
             stopwatch.Stop();
@@ -127,7 +139,7 @@ namespace AdvServiceBus.Performance
             while (remainingCount > 0)
             {
                 var messageReceiver = new MessageReceiver(connectionString, QUEUE_NAME);
-                var messages = await messageReceiver.ReceiveAsync(remainingCount);
+                var messages = await messageReceiver.ReceiveAsync(remainingCount, TimeSpan.FromSeconds(20));
 
                 foreach (var message in messages)
                 {
@@ -135,6 +147,57 @@ namespace AdvServiceBus.Performance
                     Console.WriteLine($"Message received: {messageBody}");
                     remainingCount--;
                 }
+
+                await messageReceiver.CompleteAsync(messages.Select(a => a.SystemProperties.LockToken));
+            }
+
+            stopwatch.Stop();
+            Console.WriteLine($"Receive messages took {stopwatch.ElapsedMilliseconds}");
+            Console.WriteLine($"Remaining count: {remainingCount}");
+        }
+
+        private static async Task ReceiveMessagesPrefetch(string connectionString, int count, int prefetchCount)
+        {
+            var stopwatch = new Stopwatch();
+            stopwatch.Start();
+
+            var messageReceiver = new MessageReceiver(connectionString, QUEUE_NAME);
+            messageReceiver.PrefetchCount = prefetchCount;
+            for (int i = 0; i < count; i++)
+            {
+                var message = await messageReceiver.ReceiveAsync(TimeSpan.FromSeconds(60));
+                string messageBody = Encoding.UTF8.GetString(message.Body);
+                Console.WriteLine($"Message received: {messageBody}");
+
+                await messageReceiver.CompleteAsync(message.SystemProperties.LockToken);
+            }
+
+            stopwatch.Stop();
+            Console.WriteLine($"Receive messages took {stopwatch.ElapsedMilliseconds}");
+        }
+
+
+        private static async Task ReceiveMessagesBatchPrefetch(string connectionString, int count, int prefetchCount)
+        {
+            var stopwatch = new Stopwatch();
+            stopwatch.Start();
+            int remainingCount = count;
+
+            while (remainingCount > 0)
+            {
+                var messageReceiver = new MessageReceiver(connectionString, QUEUE_NAME);
+                messageReceiver.PrefetchCount = prefetchCount;
+                var messages = await messageReceiver.ReceiveAsync(remainingCount);
+                if (messages == null) break;
+
+                foreach (var message in messages)
+                {
+                    string messageBody = Encoding.UTF8.GetString(message.Body);
+                    Console.WriteLine($"Message received: {messageBody}");
+                    remainingCount--;
+                }
+
+                await messageReceiver.CompleteAsync(messages.Select(a => a.SystemProperties.LockToken));
             }
 
             stopwatch.Stop();

@@ -2,7 +2,10 @@
 using Microsoft.Azure.ServiceBus.Core;
 using Microsoft.Extensions.Configuration;
 using System;
+using System.Linq;
+using System.Linq.Expressions;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace AdvServiceBus.DeferMessageDemo
@@ -28,6 +31,7 @@ namespace AdvServiceBus.DeferMessageDemo
                 Console.WriteLine("2: Send Not Ready Message");                
                 Console.WriteLine("3: Receive Message");
                 Console.WriteLine("4: Receive Deferred Message");
+                Console.WriteLine("5: Clean Message");
                 Console.WriteLine("0: Exit");
 
                 var key = Console.ReadKey();
@@ -53,6 +57,10 @@ namespace AdvServiceBus.DeferMessageDemo
                         await ReceiveDefered(connectionString);
                         break;
 
+                    case ConsoleKey.D5:
+                        await ClearDeferredMessages(connectionString);
+                        break;
+
                 }
 
             }
@@ -74,6 +82,7 @@ namespace AdvServiceBus.DeferMessageDemo
         {
             var messageReceiver = new MessageReceiver(connectionString, QUEUE_NAME, ReceiveMode.PeekLock);
             var message = await messageReceiver.ReceiveAsync();
+            if (message == null) return;
 
             if (message.UserProperties.ContainsKey("IsReady") && !((bool)message.UserProperties["IsReady"]))
             {
@@ -97,6 +106,22 @@ namespace AdvServiceBus.DeferMessageDemo
 
             await queueClient.SendAsync(message);
             await queueClient.CloseAsync();
+        }
+
+        private static async Task ClearDeferredMessages(string connectionString)
+        {
+            var messageReceiver = new MessageReceiver(connectionString, QUEUE_NAME, ReceiveMode.PeekLock);
+
+            Console.WriteLine("Sequence Number: ");
+            string sequenceNum = Console.ReadLine();
+
+            long seqNum = long.Parse(sequenceNum);
+
+            var msg = await messageReceiver.ReceiveDeferredMessageAsync(seqNum);
+
+            Console.WriteLine(msg.MessageId);
+
+            await messageReceiver.CompleteAsync(msg.SystemProperties.LockToken);
         }
 
     }
