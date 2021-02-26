@@ -84,7 +84,7 @@ namespace AdvServiceBus.DeadLetter
             resubmitMessage.UserProperties.Remove("DeadLetterErrorDescription");
             
             await queueClient.SendAsync(resubmitMessage);
-            // throw new Exception("aa"); // - to prove the transaction
+            //throw new Exception("aa"); // - to prove the transaction
             await deadLetterReceiver.CompleteAsync(deadLetterMessage.SystemProperties.LockToken);            
 
             scope.Complete();            

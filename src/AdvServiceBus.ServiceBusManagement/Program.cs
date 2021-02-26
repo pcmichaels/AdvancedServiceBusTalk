@@ -118,7 +118,7 @@ namespace AdvServiceBus.ServiceBusManagement
 
             var options = new CreateQueueOptions(source)
             {
-                ForwardTo = destination                
+                ForwardTo = destination                          
             };
             options.AuthorizationRules.Add(authorisationRule);
             

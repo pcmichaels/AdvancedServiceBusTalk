@@ -176,7 +176,6 @@ namespace AdvServiceBus.Performance
             Console.WriteLine($"Receive messages took {stopwatch.ElapsedMilliseconds}");
         }
 
-
         private static async Task ReceiveMessagesBatchPrefetch(string connectionString, int count, int prefetchCount)
         {
             var stopwatch = new Stopwatch();
