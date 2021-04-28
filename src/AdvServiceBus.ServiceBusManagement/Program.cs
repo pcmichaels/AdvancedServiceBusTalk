@@ -53,8 +53,7 @@ namespace AdvServiceBus.ServiceBusManagement
                         break;
 
                     case ConsoleKey.D4:
-                        await SendMessage(connectionString, "I've seen it all in my dreams last night, oh yeah. " +
-                            "Girls leaving this town 'cause we don't treat 'em right, yeah oh, yeah",
+                        await SendMessage(connectionString, "Seven or eleven, snake eyes watching you",
                             "auto-forward-queue-source");
                         break;
 

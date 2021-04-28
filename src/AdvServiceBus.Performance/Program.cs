@@ -62,7 +62,7 @@ namespace AdvServiceBus.Performance
                         break;
 
                     case ConsoleKey.D6:
-                        await ReceiveMessagesBatchPrefetch(connectionString, 1000, 1000);
+                        await ReceiveMessagesBatchPrefetch(connectionString, 1000, 100, 30);
                         break;
 
                 }
@@ -176,7 +176,7 @@ namespace AdvServiceBus.Performance
             Console.WriteLine($"Receive messages took {stopwatch.ElapsedMilliseconds}");
         }
 
-        private static async Task ReceiveMessagesBatchPrefetch(string connectionString, int count, int prefetchCount)
+        private static async Task ReceiveMessagesBatchPrefetch(string connectionString, int count, int prefetchCount, int batchReceiveCount)
         {
             var stopwatch = new Stopwatch();
             stopwatch.Start();
@@ -186,7 +186,7 @@ namespace AdvServiceBus.Performance
             {
                 var messageReceiver = new MessageReceiver(connectionString, QUEUE_NAME);
                 messageReceiver.PrefetchCount = prefetchCount;
-                var messages = await messageReceiver.ReceiveAsync(remainingCount);
+                var messages = await messageReceiver.ReceiveAsync(remainingCount > batchReceiveCount ? batchReceiveCount : remainingCount);
                 if (messages == null) break;
 
                 foreach (var message in messages)

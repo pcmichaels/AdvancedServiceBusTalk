@@ -47,7 +47,7 @@ namespace AdvServiceBus.QueueSessionDemo
                         break;
 
                     case ConsoleKey.D3:
-                        await SendMessage(connectionString, "High noon oh I'd sell my soul for water, Nine years worth of breaking my back", "session1Send");
+                        await SendMessage(connectionString, "Ticking away the moments that make up a dull day", "session1Send");
                         await ReadMessage(connectionString, "session2Reply");
                         break;
 
@@ -56,7 +56,7 @@ namespace AdvServiceBus.QueueSessionDemo
                         break;
 
                     case ConsoleKey.D5:
-                        await SendMessage(connectionString, "Stargazer, Rainbow", "session2Reply");
+                        await SendMessage(connectionString, "Time, Pink Floyd", "session2Reply");
                         break;
 
                 }
