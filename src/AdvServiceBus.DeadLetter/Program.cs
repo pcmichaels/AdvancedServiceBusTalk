@@ -1,9 +1,7 @@
-﻿using Microsoft.Azure.ServiceBus;
-using Microsoft.Azure.ServiceBus.Core;
+﻿using Azure.Messaging.ServiceBus;
 using Microsoft.Extensions.Configuration;
 using System;
 using System.Text;
-using System.Threading;
 using System.Threading.Tasks;
 using System.Transactions;
 
@@ -12,6 +10,10 @@ namespace AdvServiceBus.DeadLetter
     class Program
     {
         private static string QUEUE_NAME = "dead-letter-demo";
+        private static string DEAD_LETTER_PATH = "$deadletterqueue";
+        
+        static string FormatDeadLetterPath() =>
+            $"{QUEUE_NAME}/{DEAD_LETTER_PATH}";
 
         static async Task Main(string[] args)
         {
@@ -67,87 +69,87 @@ namespace AdvServiceBus.DeadLetter
         // https://github.com/Azure/azure-sdk-for-net/issues/14038 (send via - for transaction)
         private static async Task ResubmitDeadLetter(string connectionString)
         {
-            var serviceBusConnection = new ServiceBusConnection(connectionString);
-
-            var deadletterPath = EntityNameHelper.FormatDeadLetterPath(QUEUE_NAME);
-            var deadLetterReceiver = new MessageReceiver(serviceBusConnection, deadletterPath, ReceiveMode.PeekLock);
+            var serviceBusClient = new ServiceBusClient(connectionString);
             
-            var queueClient = new QueueClient(serviceBusConnection, QUEUE_NAME, ReceiveMode.PeekLock, RetryPolicy.Default);
+            var deadLetterReceiver = serviceBusClient.CreateReceiver(FormatDeadLetterPath());
+            var sender = serviceBusClient.CreateSender(QUEUE_NAME);
 
-            var deadLetterMessage = await deadLetterReceiver.ReceiveAsync();
+            var deadLetterMessage = await deadLetterReceiver.ReceiveMessageAsync();            
 
             using var scope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled);
 
-            var resubmitMessage = deadLetterMessage.Clone();
-
-            resubmitMessage.UserProperties.Remove("DeadLetterReason");
-            resubmitMessage.UserProperties.Remove("DeadLetterErrorDescription");
-            
-            await queueClient.SendAsync(resubmitMessage);
+            var resubmitMessage = new ServiceBusMessage(deadLetterMessage);
+            await sender.SendMessageAsync(resubmitMessage);
             //throw new Exception("aa"); // - to prove the transaction
-            await deadLetterReceiver.CompleteAsync(deadLetterMessage.SystemProperties.LockToken);            
+            await deadLetterReceiver.CompleteMessageAsync(deadLetterMessage);
 
             scope.Complete();            
         }
 
         private static async Task DeadLetterMessage(string connectionString)
         {
-            var messageReceiver = new MessageReceiver(connectionString, QUEUE_NAME);
-            var message = await messageReceiver.ReceiveAsync();
+            var serviceBusClient = new ServiceBusClient(connectionString);
+            var messageReceiver = serviceBusClient.CreateReceiver(QUEUE_NAME);
+            var message = await messageReceiver.ReceiveMessageAsync();
 
             string messageBody = Encoding.UTF8.GetString(message.Body);
 
-            await messageReceiver.DeadLetterAsync(message.SystemProperties.LockToken, "Really bad message");
+            await messageReceiver.DeadLetterMessageAsync(message, "Really bad message");
         }
 
         private static async Task ReadDeadLetterMessage(string connectionString)
         {
-            var deadletterPath = EntityNameHelper.FormatDeadLetterPath(QUEUE_NAME);
-            var deadLetterReceiver = new MessageReceiver(connectionString, deadletterPath, ReceiveMode.PeekLock);
+            var serviceBusClient = new ServiceBusClient(connectionString);
+            var deadLetterReceiver = serviceBusClient.CreateReceiver(FormatDeadLetterPath());
             
-            var message = await deadLetterReceiver.ReceiveAsync();
+            var message = await deadLetterReceiver.ReceiveMessageAsync();
 
             string messageBody = Encoding.UTF8.GetString(message.Body);
 
             Console.WriteLine("Message received: {0}", messageBody);
-            if (message.UserProperties.ContainsKey("DeadLetterReason"))
+
+            // Previous versions had these as properties
+            // https://www.pmichaels.net/2021/01/23/read-the-dead-letter-queue/
+            if (!string.IsNullOrWhiteSpace(message.DeadLetterReason))
             {
-                Console.WriteLine("Reason: {0} ", message.UserProperties["DeadLetterReason"]);
+                Console.WriteLine("Reason: {0} ", message.DeadLetterReason);
             }
-            if (message.UserProperties.ContainsKey("DeadLetterErrorDescription"))
+            if (!string.IsNullOrWhiteSpace(message.DeadLetterErrorDescription))
             {
-                Console.WriteLine("Description: {0} ", message.UserProperties["DeadLetterErrorDescription"]);
+                Console.WriteLine("Description: {0} ", message.DeadLetterErrorDescription);
             }
 
-            Console.WriteLine($"Message {message.MessageId} ({messageBody}) had a delivery count of {message.SystemProperties.DeliveryCount}");
+            Console.WriteLine($"Message {message.MessageId} ({messageBody}) had a delivery count of {message.DeliveryCount}");
         }
 
         private static async Task SendMessage(string connectionString, string messageText)
         {
-            var queueClient = new QueueClient(connectionString, QUEUE_NAME);
+            var serviceBusClient = new ServiceBusClient(connectionString);
+            var sender = serviceBusClient.CreateSender(QUEUE_NAME);
 
             string messageBody = $"{DateTime.Now}: {messageText} ({Guid.NewGuid()})";
-            var message = new Message(Encoding.UTF8.GetBytes(messageBody));            
+            var message = new ServiceBusMessage(Encoding.UTF8.GetBytes(messageBody));            
 
-            await queueClient.SendAsync(message);
-            await queueClient.CloseAsync();
+            await sender.SendMessageAsync(message);
+            await sender.CloseAsync();
         }
 
         private static async Task ReadMessage(string connectionString, bool deadLetter)
         {
-            var messageReceiver = new MessageReceiver(connectionString, QUEUE_NAME);
-            var message = await messageReceiver.ReceiveAsync();
+            var serviceBusClient = new ServiceBusClient(connectionString);            
+            var messageReceiver = serviceBusClient.CreateReceiver(QUEUE_NAME);
+            var message = await messageReceiver.ReceiveMessageAsync();
 
             string messageBody = Encoding.UTF8.GetString(message.Body);
 
             if (deadLetter)
             {
-                Console.WriteLine($"Message {message.MessageId} ({messageBody}) had a delivery count of {message.SystemProperties.DeliveryCount}");
-                await messageReceiver.AbandonAsync(message.SystemProperties.LockToken);
+                Console.WriteLine($"Message {message.MessageId} ({messageBody}) had a delivery count of {message.DeliveryCount}");
+                await messageReceiver.AbandonMessageAsync(message);
             }
             else
             {
-                await messageReceiver.CompleteAsync(message.SystemProperties.LockToken);
+                await messageReceiver.CompleteMessageAsync(message);
             }            
 
             Console.WriteLine("Message received: {0}", messageBody);
