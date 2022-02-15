@@ -23,7 +23,7 @@ namespace AdvServiceBus.ServiceBusManagement
             {
                 Console.WriteLine("Choose Action:");
                 Console.WriteLine("1: Delete queues");
-                Console.WriteLine("2: Create queues");                
+                Console.WriteLine("2: Create queues");
                 Console.WriteLine("3: Show connection details");
                 Console.WriteLine("4: Send message to source queue");
                 Console.WriteLine("5: Set-up Auto-Delete Queue");
@@ -77,7 +77,7 @@ namespace AdvServiceBus.ServiceBusManagement
         {
             var serviceBusAdministrationClient = new ServiceBusAdministrationClient(connectionString);
             var queue = await serviceBusAdministrationClient.GetQueueAsync(queueName);
-            
+
             foreach (var authRules in queue.Value.AuthorizationRules)
             {
                 Console.WriteLine($"Key Name: {authRules.KeyName} / Rights: {string.Join(",", authRules.Rights.ToList())}");
@@ -90,7 +90,7 @@ namespace AdvServiceBus.ServiceBusManagement
             var queueClient = new QueueClient(connectionString, queueName);
 
             string messageBody = $"{DateTime.Now}: {messageText} ({Guid.NewGuid()})";
-            var message = new Message(Encoding.UTF8.GetBytes(messageBody));            
+            var message = new Message(Encoding.UTF8.GetBytes(messageBody));
 
             await queueClient.SendAsync(message);
             await queueClient.CloseAsync();
@@ -117,10 +117,10 @@ namespace AdvServiceBus.ServiceBusManagement
 
             var options = new CreateQueueOptions(source)
             {
-                ForwardTo = destination                          
+                ForwardTo = destination
             };
             options.AuthorizationRules.Add(authorisationRule);
-            
+
             var queue = await serviceBusAdministrationClient.CreateQueueAsync(options);
 
         }
@@ -132,7 +132,7 @@ namespace AdvServiceBus.ServiceBusManagement
                 "manage", new[] { AccessRights.Manage, AccessRights.Listen, AccessRights.Send });
 
             var serviceBusAdministrationClient = new ServiceBusAdministrationClient(connectionString);
-                
+
             var options = new CreateQueueOptions(queueName)
             {
                 AutoDeleteOnIdle = TimeSpan.FromMinutes(5)

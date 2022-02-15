@@ -24,7 +24,7 @@ namespace AdvServiceBus.QueueDeferralDemo
             {
                 Console.WriteLine("Choose Action:");
                 Console.WriteLine("1: Receive Messages (Events)");
-                Console.WriteLine("2: Send Messages");                
+                Console.WriteLine("2: Send Messages");
                 Console.WriteLine("0: Exit");
 
                 var key = Console.ReadKey();
@@ -34,7 +34,7 @@ namespace AdvServiceBus.QueueDeferralDemo
                     case ConsoleKey.D0:
                         return;
 
-                    case ConsoleKey.D1:                        
+                    case ConsoleKey.D1:
                         await ReadMessageEvent(connectionString);
                         break;
 

@@ -11,7 +11,7 @@ namespace AdvServiceBus.DeadLetter
     {
         private static string QUEUE_NAME = "dead-letter-demo";
         private static string DEAD_LETTER_PATH = "$deadletterqueue";
-        
+
         static string FormatDeadLetterPath() =>
             $"{QUEUE_NAME}/{DEAD_LETTER_PATH}";
 
@@ -70,11 +70,11 @@ namespace AdvServiceBus.DeadLetter
         private static async Task ResubmitDeadLetter(string connectionString)
         {
             var serviceBusClient = new ServiceBusClient(connectionString);
-            
+
             var deadLetterReceiver = serviceBusClient.CreateReceiver(FormatDeadLetterPath());
             var sender = serviceBusClient.CreateSender(QUEUE_NAME);
 
-            var deadLetterMessage = await deadLetterReceiver.ReceiveMessageAsync();            
+            var deadLetterMessage = await deadLetterReceiver.ReceiveMessageAsync();
 
             using var scope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled);
 
@@ -83,7 +83,7 @@ namespace AdvServiceBus.DeadLetter
             //throw new Exception("aa"); // - to prove the transaction
             await deadLetterReceiver.CompleteMessageAsync(deadLetterMessage);
 
-            scope.Complete();            
+            scope.Complete();
         }
 
         private static async Task DeadLetterMessage(string connectionString)
@@ -101,7 +101,7 @@ namespace AdvServiceBus.DeadLetter
         {
             var serviceBusClient = new ServiceBusClient(connectionString);
             var deadLetterReceiver = serviceBusClient.CreateReceiver(FormatDeadLetterPath());
-            
+
             var message = await deadLetterReceiver.ReceiveMessageAsync();
 
             string messageBody = Encoding.UTF8.GetString(message.Body);
@@ -128,7 +128,7 @@ namespace AdvServiceBus.DeadLetter
             var sender = serviceBusClient.CreateSender(QUEUE_NAME);
 
             string messageBody = $"{DateTime.Now}: {messageText} ({Guid.NewGuid()})";
-            var message = new ServiceBusMessage(Encoding.UTF8.GetBytes(messageBody));            
+            var message = new ServiceBusMessage(Encoding.UTF8.GetBytes(messageBody));
 
             await sender.SendMessageAsync(message);
             await sender.CloseAsync();
@@ -136,7 +136,7 @@ namespace AdvServiceBus.DeadLetter
 
         private static async Task ReadMessage(string connectionString, bool deadLetter)
         {
-            var serviceBusClient = new ServiceBusClient(connectionString);            
+            var serviceBusClient = new ServiceBusClient(connectionString);
             var messageReceiver = serviceBusClient.CreateReceiver(QUEUE_NAME);
             var message = await messageReceiver.ReceiveMessageAsync();
 
@@ -150,9 +150,9 @@ namespace AdvServiceBus.DeadLetter
             else
             {
                 await messageReceiver.CompleteMessageAsync(message);
-            }            
+            }
 
             Console.WriteLine("Message received: {0}", messageBody);
-        }    
+        }
     }
 }

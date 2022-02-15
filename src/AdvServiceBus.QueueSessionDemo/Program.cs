@@ -1,5 +1,4 @@
 ﻿using Microsoft.Azure.ServiceBus;
-using Microsoft.Azure.ServiceBus.Core;
 using Microsoft.Extensions.Configuration;
 using System;
 using System.Text;
@@ -23,7 +22,7 @@ namespace AdvServiceBus.QueueSessionDemo
             while (true)
             {
                 Console.WriteLine("Choose Action:");
-                Console.WriteLine("1: Send Messages");                
+                Console.WriteLine("1: Send Messages");
                 Console.WriteLine("2: Receive Messages session1");
                 Console.WriteLine("3: Send and await reply");
                 Console.WriteLine("4: Receive Messages session1Send");
@@ -76,7 +75,7 @@ namespace AdvServiceBus.QueueSessionDemo
         }
 
         private static async Task ReadMessage(string connectionString, string sessionId)
-        {            
+        {
             var sessionClient = new SessionClient(connectionString, QUEUE_NAME);
             var session = await sessionClient.AcceptMessageSessionAsync(sessionId);
 

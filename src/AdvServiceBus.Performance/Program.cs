@@ -100,7 +100,7 @@ namespace AdvServiceBus.Performance
             for (int i = 0; i < messageCount; i++)
             {
                 string messageBody = $"{DateTime.Now}: {messageText} ({Guid.NewGuid()})";
-                var message = new Message(Encoding.UTF8.GetBytes(messageBody));                
+                var message = new Message(Encoding.UTF8.GetBytes(messageBody));
 
                 messages.Add(message);
             }

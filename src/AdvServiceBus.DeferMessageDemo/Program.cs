@@ -2,10 +2,7 @@
 using Microsoft.Azure.ServiceBus.Core;
 using Microsoft.Extensions.Configuration;
 using System;
-using System.Linq;
-using System.Linq.Expressions;
 using System.Text;
-using System.Threading;
 using System.Threading.Tasks;
 
 namespace AdvServiceBus.DeferMessageDemo
@@ -28,7 +25,7 @@ namespace AdvServiceBus.DeferMessageDemo
             {
                 Console.WriteLine("Choose Action:");
                 Console.WriteLine("1: Send Ready Message");
-                Console.WriteLine("2: Send Not Ready Message");                
+                Console.WriteLine("2: Send Not Ready Message");
                 Console.WriteLine("3: Receive Message");
                 Console.WriteLine("4: Receive Deferred Message");
                 Console.WriteLine("5: Clean Message");
@@ -68,7 +65,7 @@ namespace AdvServiceBus.DeferMessageDemo
 
         private static async Task ReceiveDefered(string connectionString)
         {
-            var messageReceiver = new MessageReceiver(connectionString, QUEUE_NAME, ReceiveMode.PeekLock);            
+            var messageReceiver = new MessageReceiver(connectionString, QUEUE_NAME, ReceiveMode.PeekLock);
             var message = await messageReceiver.ReceiveDeferredMessageAsync(_sequenceNumber);
 
             string messageBody = Encoding.UTF8.GetString(message.Body);
