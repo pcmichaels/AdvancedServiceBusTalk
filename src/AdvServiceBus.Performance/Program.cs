@@ -1,5 +1,4 @@
-﻿using Microsoft.Azure.ServiceBus;
-using Microsoft.Azure.ServiceBus.Core;
+﻿using Azure.Messaging.ServiceBus;
 using Microsoft.Extensions.Configuration;
 using System;
 using System.Collections.Generic;
@@ -74,16 +73,17 @@ namespace AdvServiceBus.Performance
             var stopwatch = new Stopwatch();
             stopwatch.Start();
 
-            var queueClient = new QueueClient(connectionString, QUEUE_NAME);
+            await using var serviceBusClient = new ServiceBusClient(connectionString);
+            var sender = serviceBusClient.CreateSender(QUEUE_NAME);
 
             for (int i = 0; i < messageCount; i++)
             {
                 string messageBody = $"{DateTime.Now}: {messageText} ({Guid.NewGuid()})";
-                var message = new Message(Encoding.UTF8.GetBytes(messageBody));
+                var message = new ServiceBusMessage(Encoding.UTF8.GetBytes(messageBody));
 
-                await queueClient.SendAsync(message);
+                await sender.SendMessageAsync(message);
             }
-            await queueClient.CloseAsync();
+            await sender.CloseAsync();
 
             stopwatch.Stop();
             Console.WriteLine($"Send messages took {stopwatch.ElapsedMilliseconds}");
@@ -94,18 +94,18 @@ namespace AdvServiceBus.Performance
             var stopwatch = new Stopwatch();
             stopwatch.Start();
 
-            var queueClient = new QueueClient(connectionString, QUEUE_NAME);
-            var messages = new List<Message>();
+            await using var serviceBusClient = new ServiceBusClient(connectionString);
+            var sender = serviceBusClient.CreateSender(QUEUE_NAME);
+            var messages = new List<ServiceBusMessage>();
 
             for (int i = 0; i < messageCount; i++)
             {
                 string messageBody = $"{DateTime.Now}: {messageText} ({Guid.NewGuid()})";
-                var message = new Message(Encoding.UTF8.GetBytes(messageBody));
+                var message = new ServiceBusMessage(Encoding.UTF8.GetBytes(messageBody));
 
                 messages.Add(message);
             }
-            await queueClient.SendAsync(messages);
-            await queueClient.CloseAsync();
+            await sender.SendMessagesAsync(messages);            
 
             stopwatch.Stop();
             Console.WriteLine($"Send messages took {stopwatch.ElapsedMilliseconds}");
@@ -116,14 +116,15 @@ namespace AdvServiceBus.Performance
             var stopwatch = new Stopwatch();
             stopwatch.Start();
 
-            var messageReceiver = new MessageReceiver(connectionString, QUEUE_NAME);
+            await using var serviceBusClient = new ServiceBusClient(connectionString);
+            var messageReceiver = serviceBusClient.CreateReceiver(connectionString, QUEUE_NAME);
             for (int i = 0; i < count; i++)
             {
-                var message = await messageReceiver.ReceiveAsync();
+                var message = await messageReceiver.ReceiveMessageAsync();
                 string messageBody = Encoding.UTF8.GetString(message.Body);
                 Console.WriteLine($"Message received: {messageBody}");
 
-                await messageReceiver.CompleteAsync(message.SystemProperties.LockToken);
+                await messageReceiver.CompleteMessageAsync(message);
             }
 
             stopwatch.Stop();
@@ -138,17 +139,19 @@ namespace AdvServiceBus.Performance
 
             while (remainingCount > 0)
             {
-                var messageReceiver = new MessageReceiver(connectionString, QUEUE_NAME);
-                var messages = await messageReceiver.ReceiveAsync(remainingCount, TimeSpan.FromSeconds(20));
+                await using var serviceBusClient = new ServiceBusClient(connectionString);
+                var messageReceiver = serviceBusClient.CreateReceiver(connectionString, QUEUE_NAME);
+
+                var messages = await messageReceiver.ReceiveMessagesAsync(remainingCount, TimeSpan.FromSeconds(20));
 
                 foreach (var message in messages)
                 {
                     string messageBody = Encoding.UTF8.GetString(message.Body);
                     Console.WriteLine($"Message received: {messageBody}");
                     remainingCount--;
-                }
 
-                await messageReceiver.CompleteAsync(messages.Select(a => a.SystemProperties.LockToken));
+                    await messageReceiver.CompleteMessageAsync(message);
+                }                                
             }
 
             stopwatch.Stop();
@@ -161,15 +164,19 @@ namespace AdvServiceBus.Performance
             var stopwatch = new Stopwatch();
             stopwatch.Start();
 
-            var messageReceiver = new MessageReceiver(connectionString, QUEUE_NAME);
-            messageReceiver.PrefetchCount = prefetchCount;
+            await using var serviceBusClient = new ServiceBusClient(connectionString);
+            var options = new ServiceBusReceiverOptions()
+            {
+                PrefetchCount = prefetchCount
+            };
+            var messageReceiver = serviceBusClient.CreateReceiver(connectionString, QUEUE_NAME, options);            
             for (int i = 0; i < count; i++)
             {
-                var message = await messageReceiver.ReceiveAsync(TimeSpan.FromSeconds(60));
+                var message = await messageReceiver.ReceiveMessageAsync(TimeSpan.FromSeconds(60));
                 string messageBody = Encoding.UTF8.GetString(message.Body);
                 Console.WriteLine($"Message received: {messageBody}");
 
-                await messageReceiver.CompleteAsync(message.SystemProperties.LockToken);
+                await messageReceiver.CompleteMessageAsync(message);
             }
 
             stopwatch.Stop();
@@ -184,9 +191,13 @@ namespace AdvServiceBus.Performance
 
             while (remainingCount > 0)
             {
-                var messageReceiver = new MessageReceiver(connectionString, QUEUE_NAME);
-                messageReceiver.PrefetchCount = prefetchCount;
-                var messages = await messageReceiver.ReceiveAsync(remainingCount > batchReceiveCount ? batchReceiveCount : remainingCount);
+                await using var serviceBusClient = new ServiceBusClient(connectionString);
+                var options = new ServiceBusReceiverOptions()
+                {
+                    PrefetchCount = prefetchCount
+                };
+                var messageReceiver = serviceBusClient.CreateReceiver(connectionString, QUEUE_NAME, options);
+                var messages = await messageReceiver.ReceiveMessagesAsync(remainingCount > batchReceiveCount ? batchReceiveCount : remainingCount);
                 if (messages == null) break;
 
                 foreach (var message in messages)
@@ -194,9 +205,8 @@ namespace AdvServiceBus.Performance
                     string messageBody = Encoding.UTF8.GetString(message.Body);
                     Console.WriteLine($"Message received: {messageBody}");
                     remainingCount--;
-                }
-
-                await messageReceiver.CompleteAsync(messages.Select(a => a.SystemProperties.LockToken));
+                    await messageReceiver.CompleteMessageAsync(message);
+                }                
             }
 
             stopwatch.Stop();

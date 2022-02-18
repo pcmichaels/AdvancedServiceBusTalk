@@ -1,4 +1,4 @@
-﻿using Microsoft.Azure.ServiceBus;
+﻿using Azure.Messaging.ServiceBus;
 using Microsoft.Extensions.Configuration;
 using System;
 using System.Text;
@@ -64,23 +64,23 @@ namespace AdvServiceBus.QueueSessionDemo
 
         private static async Task SendMessage(string connectionString, string messageText, string sessionId)
         {
-            var queueClient = new QueueClient(connectionString, QUEUE_NAME);
+            await using var serviceBusClient = new ServiceBusClient(connectionString);
+            var sender = serviceBusClient.CreateSender(QUEUE_NAME);
 
             string messageBody = $"{DateTime.Now}: {messageText} ({Guid.NewGuid()})";
-            var message = new Message(Encoding.UTF8.GetBytes(messageBody));
+            var message = new ServiceBusMessage(Encoding.UTF8.GetBytes(messageBody));
             message.SessionId = sessionId;
 
-            await queueClient.SendAsync(message);
-            await queueClient.CloseAsync();
+            await sender.SendMessageAsync(message);
         }
 
         private static async Task ReadMessage(string connectionString, string sessionId)
         {
-            var sessionClient = new SessionClient(connectionString, QUEUE_NAME);
-            var session = await sessionClient.AcceptMessageSessionAsync(sessionId);
+            await using var serviceBusClient = new ServiceBusClient(connectionString);            
+            var session = await serviceBusClient.AcceptSessionAsync(QUEUE_NAME, sessionId);
 
-            var message = await session.ReceiveAsync();
-            await session.CompleteAsync(message.SystemProperties.LockToken);
+            var message = await session.ReceiveMessageAsync();
+            await session.CompleteMessageAsync(message);
 
             string messageBody = Encoding.UTF8.GetString(message.Body);
 

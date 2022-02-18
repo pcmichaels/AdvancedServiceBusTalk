@@ -1,5 +1,5 @@
-﻿using Azure.Messaging.ServiceBus.Administration;
-using Microsoft.Azure.ServiceBus;
+﻿using Azure.Messaging.ServiceBus;
+using Azure.Messaging.ServiceBus.Administration;
 using Microsoft.Extensions.Configuration;
 using System;
 using System.Linq;
@@ -87,13 +87,13 @@ namespace AdvServiceBus.ServiceBusManagement
 
         private static async Task SendMessage(string connectionString, string messageText, string queueName)
         {
-            var queueClient = new QueueClient(connectionString, queueName);
+            await using var serviceBusClient = new ServiceBusClient(connectionString);
+            var sender = serviceBusClient.CreateSender(queueName);
 
             string messageBody = $"{DateTime.Now}: {messageText} ({Guid.NewGuid()})";
-            var message = new Message(Encoding.UTF8.GetBytes(messageBody));
+            var message = new ServiceBusMessage(Encoding.UTF8.GetBytes(messageBody));
 
-            await queueClient.SendAsync(message);
-            await queueClient.CloseAsync();
+            await sender.SendMessageAsync(message);            
         }
 
         private static async Task RemoveQueue(string connectionString, string queueName)
@@ -142,6 +142,5 @@ namespace AdvServiceBus.ServiceBusManagement
             var queue = await serviceBusAdministrationClient.CreateQueueAsync(options);
 
         }
-
     }
 }

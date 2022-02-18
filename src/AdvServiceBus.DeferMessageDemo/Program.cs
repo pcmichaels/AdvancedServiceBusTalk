@@ -1,5 +1,4 @@
-﻿using Microsoft.Azure.ServiceBus;
-using Microsoft.Azure.ServiceBus.Core;
+﻿using Azure.Messaging.ServiceBus;
 using Microsoft.Extensions.Configuration;
 using System;
 using System.Text;
@@ -65,49 +64,64 @@ namespace AdvServiceBus.DeferMessageDemo
 
         private static async Task ReceiveDefered(string connectionString)
         {
-            var messageReceiver = new MessageReceiver(connectionString, QUEUE_NAME, ReceiveMode.PeekLock);
+            await using var serviceBusClient = new ServiceBusClient(connectionString);
+            var options = new ServiceBusReceiverOptions()
+            {
+                ReceiveMode = ServiceBusReceiveMode.PeekLock
+            };
+            var messageReceiver = serviceBusClient.CreateReceiver(QUEUE_NAME, options);
             var message = await messageReceiver.ReceiveDeferredMessageAsync(_sequenceNumber);
 
             string messageBody = Encoding.UTF8.GetString(message.Body);
 
             Console.WriteLine("Message received: {0}", messageBody);
 
-            await messageReceiver.CompleteAsync(message.SystemProperties.LockToken);
+            await messageReceiver.CompleteMessageAsync(message);
         }
 
         private static async Task ReceiveAndDefer(string connectionString)
         {
-            var messageReceiver = new MessageReceiver(connectionString, QUEUE_NAME, ReceiveMode.PeekLock);
-            var message = await messageReceiver.ReceiveAsync();
+            await using var serviceBusClient = new ServiceBusClient(connectionString);
+            var options = new ServiceBusReceiverOptions()
+            {
+                ReceiveMode = ServiceBusReceiveMode.PeekLock
+            };
+            var messageReceiver = serviceBusClient.CreateReceiver(QUEUE_NAME, options);
+            var message = await messageReceiver.ReceiveMessageAsync();
             if (message == null) return;
 
-            if (message.UserProperties.ContainsKey("IsReady") && !((bool)message.UserProperties["IsReady"]))
+            if (message.ApplicationProperties.ContainsKey("IsReady") && !((bool)message.ApplicationProperties["IsReady"]))
             {
-                _sequenceNumber = message.SystemProperties.SequenceNumber;
-                await messageReceiver.DeferAsync(message.SystemProperties.LockToken);
+                _sequenceNumber = message.SequenceNumber;
+                await messageReceiver.DeferMessageAsync(message);
                 return;
             }
 
             string messageBody = Encoding.UTF8.GetString(message.Body);
             Console.WriteLine("Message received: {0}", messageBody);
-            await messageReceiver.CompleteAsync(message.SystemProperties.LockToken);
+            await messageReceiver.CompleteMessageAsync(message);
         }
 
         private static async Task SendMessage(string connectionString, string messageText, bool isReady)
         {
-            var queueClient = new QueueClient(connectionString, QUEUE_NAME);
+            await using var serviceBusClient = new ServiceBusClient(connectionString);
+            var sender = serviceBusClient.CreateSender(QUEUE_NAME);
 
             string messageBody = $"{DateTime.Now}: {messageText} ({Guid.NewGuid()})";
-            var message = new Message(Encoding.UTF8.GetBytes(messageBody));
-            message.UserProperties.Add("IsReady", isReady);
+            var message = new ServiceBusMessage(Encoding.UTF8.GetBytes(messageBody));
+            message.ApplicationProperties.Add("IsReady", isReady);
 
-            await queueClient.SendAsync(message);
-            await queueClient.CloseAsync();
+            await sender.SendMessageAsync(message);            
         }
 
         private static async Task ClearDeferredMessages(string connectionString)
         {
-            var messageReceiver = new MessageReceiver(connectionString, QUEUE_NAME, ReceiveMode.PeekLock);
+            await using var serviceBusClient = new ServiceBusClient(connectionString);
+            var options = new ServiceBusReceiverOptions()
+            {
+                ReceiveMode = ServiceBusReceiveMode.PeekLock
+            };
+            var messageReceiver = serviceBusClient.CreateReceiver(QUEUE_NAME, options);
 
             Console.WriteLine("Sequence Number: ");
             string sequenceNum = Console.ReadLine();
@@ -118,7 +132,7 @@ namespace AdvServiceBus.DeferMessageDemo
 
             Console.WriteLine(msg.MessageId);
 
-            await messageReceiver.CompleteAsync(msg.SystemProperties.LockToken);
+            await messageReceiver.CompleteMessageAsync(msg);
         }
 
     }
