@@ -35,6 +35,7 @@ namespace AdvServiceBus.DeadLetter
                 Console.WriteLine("0: Exit");
 
                 var key = Console.ReadKey();
+                Console.WriteLine();
 
                 switch (key.Key)
                 {
@@ -138,14 +139,19 @@ namespace AdvServiceBus.DeadLetter
         {
             var serviceBusClient = new ServiceBusClient(connectionString);
             var messageReceiver = serviceBusClient.CreateReceiver(QUEUE_NAME);
-            var message = await messageReceiver.ReceiveMessageAsync();
+            var message = await messageReceiver.ReceiveMessageAsync(new TimeSpan(0, 0, 5));
+            if (message == null)
+            {
+                Console.WriteLine("No message found");
+                return;
+            }
 
             string messageBody = Encoding.UTF8.GetString(message.Body);
 
             if (deadLetter)
-            {
-                Console.WriteLine($"Message {message.MessageId} ({messageBody}) had a delivery count of {message.DeliveryCount}");
+            {                
                 await messageReceiver.AbandonMessageAsync(message);
+                Console.WriteLine($"Message {message.MessageId} ({messageBody}) had a delivery count of {message.DeliveryCount}");
             }
             else
             {

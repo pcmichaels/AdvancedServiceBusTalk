@@ -49,11 +49,11 @@ namespace AdvServiceBus.Performance
                         break;
 
                     case ConsoleKey.D3:
-                        await ReceiveMessages(connectionString, 1000);
+                        await ReceiveMessages(connectionString, 100);
                         break;
 
                     case ConsoleKey.D4:
-                        await ReceiveMessagesBatch(connectionString, 1000);
+                        await ReceiveMessagesBatch(connectionString, 100);
                         break;
 
                     case ConsoleKey.D5:
@@ -117,7 +117,7 @@ namespace AdvServiceBus.Performance
             stopwatch.Start();
 
             await using var serviceBusClient = new ServiceBusClient(connectionString);
-            var messageReceiver = serviceBusClient.CreateReceiver(connectionString, QUEUE_NAME);
+            var messageReceiver = serviceBusClient.CreateReceiver(QUEUE_NAME);
             for (int i = 0; i < count; i++)
             {
                 var message = await messageReceiver.ReceiveMessageAsync();
@@ -140,7 +140,7 @@ namespace AdvServiceBus.Performance
             while (remainingCount > 0)
             {
                 await using var serviceBusClient = new ServiceBusClient(connectionString);
-                var messageReceiver = serviceBusClient.CreateReceiver(connectionString, QUEUE_NAME);
+                var messageReceiver = serviceBusClient.CreateReceiver(QUEUE_NAME);
 
                 var messages = await messageReceiver.ReceiveMessagesAsync(remainingCount, TimeSpan.FromSeconds(20));
 

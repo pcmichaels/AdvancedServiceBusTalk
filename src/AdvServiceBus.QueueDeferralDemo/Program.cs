@@ -49,7 +49,7 @@ namespace AdvServiceBus.QueueDeferralDemo
 
         private static async Task ReadMessageEvent(string connectionString)
         {
-            await using var serviceBusClient = new ServiceBusClient(connectionString);
+            var serviceBusClient = new ServiceBusClient(connectionString);
             var processor = serviceBusClient.CreateProcessor(QUEUE_NAME);
             processor.ProcessMessageAsync += handleMessage;
             processor.ProcessErrorAsync += ExceptionHandler;
@@ -58,7 +58,7 @@ namespace AdvServiceBus.QueueDeferralDemo
 
         private static Task ExceptionHandler(ProcessErrorEventArgs arg)
         {
-            Console.WriteLine("Something bad happened!");
+            Console.WriteLine($"Something bad happened: {arg.Exception}");
             return Task.CompletedTask;
         }
 
